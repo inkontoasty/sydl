@@ -7,7 +7,7 @@ PLAYLISTS = os.path.join(PATH,"Playlists")
 os.makedirs(LIBRARY,exist_ok=True)
 os.makedirs(PLAYLISTS,exist_ok=True)
 os.makedirs("stuff",exist_ok=True)
-pathsafe = lambda x: x.replace('<','[').replace('>',']').replace(':','"').replace('"',"'").replace("/","-").replace("\\","-").replace("|","-").replace("?","!").replace("*","+")
+pathsafe = lambda x: x.strip().replace(":",";").replace('<','[').replace('>',']').replace(':','"').replace('"',"'").replace("/","-").replace("\\","-").replace("|","-").replace("?","!").replace("*","+")[:150]
 searchfmt = lambda t: f"{t.name} - {', '.join([i.name for i in t.artists])}"
 getfn = lambda t: os.path.join(LIBRARY,f"{pathsafe(searchfmt(t))} {t.id}.mp3")
 
@@ -33,7 +33,7 @@ class Track:
 for playlist in client.get_playlists(fetchplaylists, max_tracks=999):
     tracks = [Track(t.track) for t in playlist.unwrap().tracks]
     library += tracks
-    fn=f"{playlist.result.name} {playlist.result.id}.m3u"
+    fn=pathsafe(f"{playlist.result.name} {playlist.result.id}.m3u")
     file = open(fn,"w")
     file.write("#EXTM3U\n")
     for t in tracks:
@@ -57,7 +57,7 @@ for track in library:
         for found in ytm.search(searchfmt(track))[:10]:
             try:
                 if found['resultType']in['song','video']:
-                    subprocess.Popen(["yt-dlp","-t","mp3","-o",os.path.join("stuff",track.id),
+                    subprocess.run(["yt-dlp","-t","mp3","-o",os.path.join("stuff",track.id),
                         found['videoId']],capture_output=True)
                     subprocess.run(["ffmpeg","-i",os.path.join("stuff",f"{track.id}.mp3"),"-i",os.path.join("stuff",f"{track.album.id}.jpg"),
                         "-map","0:a","-map","1:v","-c","copy",
