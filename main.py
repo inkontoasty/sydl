@@ -39,7 +39,7 @@ for playlist in client.get_playlists(fetchplaylists, max_tracks=999):
     for t in tracks:
         file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}\n")
     file.close()
-    shutil.move(fn,os.path.join(PLAYLISTS,fn))
+    shutil.copy(fn,os.path.join(PLAYLISTS,fn))
 
 for album in client.get_albums(fetchalbums):
     library += [Track(i,album.result) for i in album.unwrap().tracks]
@@ -69,7 +69,7 @@ for track in library:
                         "-metadata","album_artist="+track.album.id,
                         "-metadata","track="+str(track.track_number),
                         f"{track.id}.mp3"],capture_output=True)
-                    shutil.move(f"{track.id}.mp3",fn)
+                    shutil.copy(f"{track.id}.mp3",fn)
                     break
             except Exception as e: print(track.name,e)
         else: print(f"{track.name} fail")
