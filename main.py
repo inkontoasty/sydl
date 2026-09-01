@@ -33,11 +33,13 @@ class Track:
 for playlist in client.get_playlists(fetchplaylists, max_tracks=999):
     tracks = [Track(t.track) for t in playlist.unwrap().tracks]
     library += tracks
-    file = open(os.path.join(PLAYLISTS,f"{playlist.result.name} {playlist.result.id}.m3u"),"w")
+    fn=f"{playlist.result.name} {playlist.result.id}.m3u"
+    file = open(fn,"w")
     file.write("#EXTM3U\n")
     for t in tracks:
         file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}\n")
     file.close()
+    shutil.move(fn,os.path.join(PLAYLISTS,fn))
 
 for album in client.get_albums(fetchalbums):
     library += [Track(i,album.result) for i in album.unwrap().tracks]
@@ -55,7 +57,7 @@ for track in library:
         for found in ytm.search(searchfmt(track))[:10]:
             try:
                 if found['resultType']in['song','video']:
-                    subprocess.run(["yt-dlp","-t","mp3","-o",os.path.join("stuff",track.id),
+                    subprocess.Popen(["yt-dlp","-t","mp3","-o",os.path.join("stuff",track.id),
                         found['videoId']],capture_output=True)
                     subprocess.run(["ffmpeg","-i",os.path.join("stuff",f"{track.id}.mp3"),"-i",os.path.join("stuff",f"{track.album.id}.jpg"),
                         "-map","0:a","-map","1:v","-c","copy",
