@@ -35,11 +35,12 @@ for playlist in client.get_playlists(fetchplaylists, max_tracks=999):
     library += tracks
     fn=pathsafe(f"{playlist.result.name} {playlist.result.id}.m3u")
     file = open(fn,"w")
-    file.write("#EXTM3U\n")
+    file.write(f"#EXTM3U\n#PLAYLIST:{playlist.result.name}")
     for t in tracks:
-        file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}\n")
+        file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}")
     file.close()
     shutil.copy(fn,os.path.join(PLAYLISTS,fn))
+    os.remove(fn)
 
 for album in client.get_albums(fetchalbums):
     library += [Track(i,album.result) for i in album.unwrap().tracks]
