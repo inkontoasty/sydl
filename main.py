@@ -35,9 +35,9 @@ for playlist in client.get_playlists(fetchplaylists, max_tracks=999):
     library += tracks
     fn=pathsafe(f"{playlist.result.name} {playlist.result.id}.m3u")
     file = open(fn,"w")
-    file.write(f"#EXTM3U\n#PLAYLIST:{playlist.result.name}")
+    file.write(f"#EXTM3U\n#PLAYLIST:{playlist.result.name}\n")
     for t in tracks:
-        file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}")
+        file.write(f"#EXTINF:{t.duration_ms//1000},{searchfmt(t)}\n{getfn(t)}\n")
     file.close()
     shutil.copy(fn,os.path.join(PLAYLISTS,fn))
     os.remove(fn)
@@ -55,11 +55,11 @@ for track in library:
         print(searchfmt(track))
         if f"{track.album.id}.jpg"not in os.listdir("stuff"):
             client.download_cover(track,"stuff",size="largest",filename=f"{track.album.id}.jpg")
-        for found in ytm.search(searchfmt(track))[:10]:
+        for found in sorted(ytm.search(searchfmt(track)),key=lambda i:abs(i.get("duration_seconds",9999)-track.duration_ms//1000))[:10]:
             try:
                 if found['resultType']in['song','video']:
                     subprocess.run(["yt-dlp","-t","mp3","-o",os.path.join("stuff",track.id),
-                        found['videoId']],capture_output=True)
+                        "https://youtu.be/"+found['videoId']],capture_output=True)
                     subprocess.run(["ffmpeg","-i",os.path.join("stuff",f"{track.id}.mp3"),"-i",os.path.join("stuff",f"{track.album.id}.jpg"),
                         "-map","0:a","-map","1:v","-c","copy",
                         "-id3v2_version","3",
@@ -75,6 +75,8 @@ for track in library:
             except Exception as e: print(track.name,e)
         else: print(f"{track.name} fail")
 
+for i in os.listdir():
+    if i.endswith('.mp3'): os.remove(i)
 for i in os.listdir("stuff"):
     os.remove(os.path.join('stuff',i))
 client.close()
