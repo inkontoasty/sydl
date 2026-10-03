@@ -1,7 +1,7 @@
 import os, json, shutil, subprocess
 import ytmusicapi,spotify_scraper
 
-PATH = open("path.txt","r").read()
+PATH = open("path.txt","r").read().split()
 LIBRARY = os.path.join(PATH,"Library")
 PLAYLISTS = os.path.join(PATH,"Playlists")
 os.makedirs(LIBRARY,exist_ok=True)
